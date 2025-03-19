@@ -1,0 +1,27 @@
+# targets:
+#   $default:
+#     builders:
+#       flexi_localization|localization_generator:
+#         enabled: true
+
+# builders:
+#   localization_generator:
+#     import: "package:flexi_localization/src/localization_generator.dart"
+#     builder_factories: ["localizationGeneratorFactory"]
+#     build_extensions: { ".json": [".translations.dart"] } # Çıktıyı özelleştirdik
+#     auto_apply: root_package
+#     build_to: source
+
+targets:
+  $default:
+    builders:
+      flexi_localization|localization_generator:
+        enabled: true
+
+builders:
+  localization_generator:
+    import: "package:flexi_localization/src/localization_generator.dart"
+    builder_factories: ["localizationGeneratorFactory"]
+    build_extensions: { ".json": [".g.dart"] }
+    auto_apply: root_package
+    build_to: source
