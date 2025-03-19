@@ -3,13 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class LocalizationService {
-  static final LocalizationService _instance = LocalizationService._internal();
   factory LocalizationService() => _instance;
   LocalizationService._internal();
+  static final LocalizationService _instance = LocalizationService._internal();
 
   Map<String, dynamic> _localizedStrings = {};
-  final Map<String, Map<String, dynamic>> _cache = {};
+  final Map<String, Map<String, dynamic>> _cache =
+      {}; // Önceden yüklenen dilleri sakla
+  List<Locale> _detectedLocales = []; // Tespit edilen diller önceden saklanacak
 
+  /// Sadece ihtiyaç duyulan dili yükler (Lazy Loading)
   Future<void> loadLanguage(String languageCode, String assetsPath) async {
     if (_cache.containsKey(languageCode)) {
       _localizedStrings = _cache[languageCode]!;
@@ -17,11 +20,11 @@ class LocalizationService {
     }
 
     try {
-      String jsonString = await rootBundle.loadString(
+      final jsonString = await rootBundle.loadString(
         '$assetsPath/$languageCode.json',
-      );
-      _localizedStrings = json.decode(jsonString);
-      _cache[languageCode] = _localizedStrings;
+      ); // Sadece istenen dili yükle
+      _localizedStrings = json.decode(jsonString) as Map<String, dynamic>;
+      _cache[languageCode] = _localizedStrings; // Cache'e ekle
     } catch (e) {
       _localizedStrings = {};
     }
@@ -29,28 +32,38 @@ class LocalizationService {
 
   /// `assets/lang/` içindeki tüm JSON dosyalarını tarar ve mevcut dilleri döndürür.
   Future<List<Locale>> detectAvailableLanguages(String assetsPath) async {
+    if (_detectedLocales.isNotEmpty) {
+      return _detectedLocales; // Daha önce tespit edilen dilleri döndür
+    }
+
     try {
       final manifestContent = await rootBundle.loadString('AssetManifest.json');
-      final Map<String, dynamic> manifestMap = json.decode(manifestContent);
+      final manifestMap = json.decode(manifestContent) as Map<String, dynamic>;
 
-      List<Locale> availableLocales =
+      _detectedLocales =
           manifestMap.keys
               .where(
-                (path) => path.startsWith(assetsPath) && path.endsWith(".json"),
+                (path) => path.startsWith(assetsPath) && path.endsWith('.json'),
               )
               .map((path) {
-                String langCode = path.split("/").last.split(".").first;
+                final langCode = path.split('/').last.split('.').first;
                 return Locale(langCode);
               })
               .toList();
 
-      return availableLocales;
+      if (_detectedLocales.isEmpty) {
+        _detectedLocales.add(
+          const Locale('en'),
+        ); // Eğer hiç dil bulunamazsa, en azından "en" olsun
+      }
+
+      return _detectedLocales;
     } catch (e) {
-      return [];
+      return [const Locale('en')]; // Hata olursa varsayılan olarak "en" döndür
     }
   }
 
   String translate(String key) {
-    return _localizedStrings[key] ?? key;
+    return _localizedStrings[key] as String? ?? key;
   }
 }

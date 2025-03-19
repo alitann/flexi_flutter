@@ -6,6 +6,7 @@ class Translations {
   static const String welcomeMessage = 'welcome_message';
   static const String logoutButton = 'logout_button';
   static const String loginButton = 'login_button';
+  static const String hello = 'hello';
 }
 
 extension TranslationKeys on LocalizationService {
@@ -13,4 +14,5 @@ extension TranslationKeys on LocalizationService {
   String get welcomeMessage => translate(Translations.welcomeMessage);
   String get logoutButton => translate(Translations.logoutButton);
   String get loginButton => translate(Translations.loginButton);
+  String get hello => translate(Translations.hello);
 }

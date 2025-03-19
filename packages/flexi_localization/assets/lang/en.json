@@ -2,5 +2,6 @@
   "home_title": "Home",
   "welcome_message": "Welcome to our app",
   "logout_button": "Logout",
-  "login_button": "Login"
+  "login_button": "Login",
+  "hello": "Hello"
 }

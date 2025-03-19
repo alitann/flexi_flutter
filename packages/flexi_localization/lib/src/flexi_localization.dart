@@ -12,16 +12,17 @@ typedef FlexiLocalizationBuilder =
     );
 
 class FlexiLocalization extends StatelessWidget {
+  const FlexiLocalization({
+    required this.builder,
+    super.key,
+    this.defaultLocale = 'en',
+    this.assetsPath = 'packages/flexi_localization/assets/lang',
+    this.loadingWidget,
+  });
   final String defaultLocale;
   final String assetsPath;
   final FlexiLocalizationBuilder builder;
-
-  const FlexiLocalization({
-    super.key,
-    this.defaultLocale = "en",
-    this.assetsPath = "packages/flexi_localization/assets/lang",
-    required this.builder,
-  });
+  final Widget? loadingWidget;
 
   @override
   Widget build(BuildContext context) {
@@ -31,8 +32,13 @@ class FlexiLocalization extends StatelessWidget {
               LocalizationCubit(defaultLocale, assetsPath)
                 ..detectAvailableLanguages(),
       child: BlocBuilder<LocalizationCubit, LocalizationState>(
-        // Burada doğru state tipi kullanıldı
         builder: (context, state) {
+          /// Eğer supportedLocales henüz belirlenmediyse
+          /// kullanıcıdan gelen `loadingWidget`'ı göster
+          if (state.supportedLocales.isEmpty) {
+            return loadingWidget ?? _buildDefaultLoadingScreen();
+          }
+
           return builder(
             context,
             state.locale,
@@ -41,6 +47,13 @@ class FlexiLocalization extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+
+  /// Varsayılan yükleme ekranı
+  Widget _buildDefaultLoadingScreen() {
+    return const MaterialApp(
+      home: Scaffold(body: Center(child: CircularProgressIndicator())),
     );
   }
 

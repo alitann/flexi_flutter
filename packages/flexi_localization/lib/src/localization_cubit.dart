@@ -1,25 +1,28 @@
+import 'package:flexi_localization/src/localization_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'localization_service.dart';
 
 class LocalizationCubit extends Cubit<LocalizationState> {
-  final String assetsPath;
-  static const String _localeKey = "selected_locale";
-
   LocalizationCubit(String defaultLocale, this.assetsPath)
     : super(
-        LocalizationState(locale: Locale(defaultLocale), supportedLocales: []),
+        LocalizationState(
+          locale: Locale(defaultLocale),
+          supportedLocales: [Locale(defaultLocale)],
+        ),
       ) {
     _loadSavedLocale();
   }
+  final String assetsPath;
+  static const String _localeKey = 'selected_locale';
 
   Future<void> _loadSavedLocale() async {
     final prefs = await SharedPreferences.getInstance();
-    String savedLocale =
+    final savedLocale =
         prefs.getString(_localeKey) ?? state.locale.languageCode;
+
     await LocalizationService().loadLanguage(savedLocale, assetsPath);
-    detectAvailableLanguages();
+    await detectAvailableLanguages();
     emit(
       LocalizationState(
         locale: Locale(savedLocale),
@@ -29,7 +32,9 @@ class LocalizationCubit extends Cubit<LocalizationState> {
   }
 
   Future<void> detectAvailableLanguages() async {
-    List<Locale> locales = await LocalizationService().detectAvailableLanguages(
+    if (state.supportedLocales.isNotEmpty) return;
+
+    final locales = await LocalizationService().detectAvailableLanguages(
       assetsPath,
     );
     emit(
@@ -41,7 +46,7 @@ class LocalizationCubit extends Cubit<LocalizationState> {
   }
 
   Future<void> changeLocale(String languageCode) async {
-    await LocalizationService().loadLanguage(languageCode, assetsPath);
+    await LocalizationService().loadLanguage(languageCode, assetsPath); // Lazy
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_localeKey, languageCode);
     emit(
@@ -54,8 +59,7 @@ class LocalizationCubit extends Cubit<LocalizationState> {
 }
 
 class LocalizationState {
+  LocalizationState({required this.locale, required this.supportedLocales});
   final Locale locale;
   final List<Locale> supportedLocales;
-
-  LocalizationState({required this.locale, required this.supportedLocales});
 }
