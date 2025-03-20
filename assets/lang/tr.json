@@ -3,5 +3,6 @@
   "welcome_message": "Uygulamaya hoşgeldiniz",
   "logout_button": "Çıkış Yap",
   "login_button": "Giriş Yap",
-  "hello": "Merhaba"
+  "hello": "Merhaba",
+  "email": "E-posta"
 }

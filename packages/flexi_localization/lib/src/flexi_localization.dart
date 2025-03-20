@@ -16,7 +16,7 @@ class FlexiLocalization extends StatelessWidget {
     required this.builder,
     super.key,
     this.defaultLocale = 'en',
-    this.assetsPath = 'packages/flexi_localization/assets/lang',
+    this.assetsPath = 'assets/lang',
     this.loadingWidget,
   });
   final String defaultLocale;
@@ -28,9 +28,10 @@ class FlexiLocalization extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create:
-          (context) =>
-              LocalizationCubit(defaultLocale, assetsPath)
-                ..detectAvailableLanguages(),
+          (context) => LocalizationCubit(
+            defaultLocale: defaultLocale,
+            assetsPath: assetsPath,
+          ),
       child: BlocBuilder<LocalizationCubit, LocalizationState>(
         builder: (context, state) {
           /// Eğer supportedLocales henüz belirlenmediyse

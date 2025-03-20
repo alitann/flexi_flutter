@@ -1,5 +1,6 @@
 import 'package:flexi_localization/flexi_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:my_flutter_works/generated/translations.g.dart';
 
 void main() {
   runApp(MyApp());

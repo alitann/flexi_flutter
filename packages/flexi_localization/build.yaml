@@ -15,8 +15,9 @@
 targets:
   $default:
     builders:
-      flexi_localization|localization_generator:
-        enabled: true
+      flexi_localization:localization_generator:
+        generate_for:
+          - assets/lang/**
 
 builders:
   localization_generator:

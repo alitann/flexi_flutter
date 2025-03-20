@@ -4,49 +4,47 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LocalizationCubit extends Cubit<LocalizationState> {
-  LocalizationCubit(String defaultLocale, this.assetsPath)
+  LocalizationCubit({required this.defaultLocale, required this.assetsPath})
     : super(
         LocalizationState(
           locale: Locale(defaultLocale),
           supportedLocales: [Locale(defaultLocale)],
         ),
       ) {
-    _loadSavedLocale();
+    _initialize();
   }
+
+  final String defaultLocale;
   final String assetsPath;
   static const String _localeKey = 'selected_locale';
 
-  Future<void> _loadSavedLocale() async {
+  Future<void> _initialize() async {
     final prefs = await SharedPreferences.getInstance();
-    final savedLocale =
-        prefs.getString(_localeKey) ?? state.locale.languageCode;
+    final savedLocale = prefs.getString(_localeKey) ?? defaultLocale;
 
-    await LocalizationService().loadLanguage(savedLocale, assetsPath);
-    await detectAvailableLanguages();
+    await LocalizationService().loadLanguage(
+      languageCode: savedLocale,
+      assetsPath: assetsPath,
+    );
+    final locales = await LocalizationService().detectAvailableLanguages(
+      defaultLocale: defaultLocale,
+      assetsPath: assetsPath,
+    );
+
     emit(
       LocalizationState(
         locale: Locale(savedLocale),
-        supportedLocales: state.supportedLocales,
-      ),
-    );
-  }
-
-  Future<void> detectAvailableLanguages() async {
-    if (state.supportedLocales.isNotEmpty) return;
-
-    final locales = await LocalizationService().detectAvailableLanguages(
-      assetsPath,
-    );
-    emit(
-      LocalizationState(
-        locale: state.locale,
-        supportedLocales: locales.isNotEmpty ? locales : [state.locale],
+        supportedLocales:
+            locales.isNotEmpty ? locales : [Locale(defaultLocale)],
       ),
     );
   }
 
   Future<void> changeLocale(String languageCode) async {
-    await LocalizationService().loadLanguage(languageCode, assetsPath); // Lazy
+    await LocalizationService().loadLanguage(
+      languageCode: languageCode,
+      assetsPath: assetsPath,
+    );
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_localeKey, languageCode);
     emit(

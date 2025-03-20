@@ -3,5 +3,6 @@
   "welcome_message": "Welcome to our app",
   "logout_button": "Logout",
   "login_button": "Login",
-  "hello": "Hello"
+  "hello": "Hello",
+  "email": "Email"
 }

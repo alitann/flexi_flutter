@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -9,11 +10,13 @@ class LocalizationService {
 
   Map<String, dynamic> _localizedStrings = {};
   final Map<String, Map<String, dynamic>> _cache =
-      {}; // Önceden yüklenen dilleri sakla
-  List<Locale> _detectedLocales = []; // Tespit edilen diller önceden saklanacak
+      {}; // Önceden yüklenen dilleri saklar
 
   /// Sadece ihtiyaç duyulan dili yükler (Lazy Loading)
-  Future<void> loadLanguage(String languageCode, String assetsPath) async {
+  Future<void> loadLanguage({
+    required String languageCode,
+    required String assetsPath,
+  }) async {
     if (_cache.containsKey(languageCode)) {
       _localizedStrings = _cache[languageCode]!;
       return;
@@ -30,36 +33,28 @@ class LocalizationService {
     }
   }
 
-  /// `assets/lang/` içindeki tüm JSON dosyalarını tarar ve mevcut dilleri döndürür.
-  Future<List<Locale>> detectAvailableLanguages(String assetsPath) async {
-    if (_detectedLocales.isNotEmpty) {
-      return _detectedLocales; // Daha önce tespit edilen dilleri döndür
-    }
+  Future<List<Locale>> detectAvailableLanguages({
+    required String defaultLocale,
+    required String assetsPath,
+  }) async {
+    final detectedLocales = <Locale>[];
 
     try {
-      final manifestContent = await rootBundle.loadString('AssetManifest.json');
-      final manifestMap = json.decode(manifestContent) as Map<String, dynamic>;
+      final dir = Directory(assetsPath);
+      if (!dir.existsSync()) return [const Locale('en')];
 
-      _detectedLocales =
-          manifestMap.keys
-              .where(
-                (path) => path.startsWith(assetsPath) && path.endsWith('.json'),
-              )
-              .map((path) {
-                final langCode = path.split('/').last.split('.').first;
-                return Locale(langCode);
-              })
-              .toList();
+      final files = dir.listSync().where((file) => file.path.endsWith('.json'));
 
-      if (_detectedLocales.isEmpty) {
-        _detectedLocales.add(
-          const Locale('en'),
-        ); // Eğer hiç dil bulunamazsa, en azından "en" olsun
+      for (final file in files) {
+        final langCode = file.uri.pathSegments.last.split('.').first;
+        detectedLocales.add(Locale(langCode));
       }
 
-      return _detectedLocales;
+      return detectedLocales.isNotEmpty
+          ? detectedLocales
+          : [Locale(defaultLocale)];
     } catch (e) {
-      return [const Locale('en')]; // Hata olursa varsayılan olarak "en" döndür
+      return [Locale(defaultLocale)];
     }
   }
 
